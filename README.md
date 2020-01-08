@@ -3,6 +3,11 @@ Plugin for IntelliJ IDEA that runs command when build event happen.
 
 IntelliJ IDEA用のプラグインです。ビルド終了時にコマンドを実行する能力があります。
 
+### 免責
+Android Studio でGradleを使う場合、ビルド開始イベントは受け取れません。
+IntelliJ IDEA でGradleを使う場合、イベントを全く受け取れません。
+IntelliJ IDEA でIDEAから直接JavaやKotlinを扱う場合、イベントを受け取れます。
+
 ### 導入1
 ffmpegについてくるffplayコマンドを適当に探してインストールしておきます。
 
@@ -25,4 +30,3 @@ ffmpegについてくるffplayコマンドを適当に探してインストー�
 
 ### トラブルシューティング
 Android Studio のメニューのHelp/Show Log in Explorerを選ぶとidea.logのあるフォルダが開かれるので、適当に読んで調べてください。
- 
