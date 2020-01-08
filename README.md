@@ -30,3 +30,7 @@ ffmpegについてくるffplayコマンドを適当に探してインストー�
 
 ### トラブルシューティング
 Android Studio のメニューのHelp/Show Log in Explorerを選ぶとidea.logのあるフォルダが開かれるので、適当に読んで調べてください。
+
+### 最後に
+[巻乃もなかはいいぞ][1]
+[1]:https://twitter.com/monaka_0_0_7
