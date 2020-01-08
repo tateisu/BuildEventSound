@@ -20,7 +20,8 @@ class Config(configFile : File) {
         @Suppress("RegExpRedundantEscape")
         private val reSection = """\A\[([^\]]*)]""".toRegex()
 
-        private const val SECTION_SETTINGS = "settings"
+        const val SECTION_SETTINGS = "settings"
+        const val SETTING_COMMAND = "command"
     }
 
     // map of section to list of file name.
@@ -152,23 +153,16 @@ enum class Events {
     BeforeCompile,
     BuildSuccess,
     BuildError,
-    // BuildWarning,
+    BuildWarning,
 }
 
 object Dispatcher {
 
-    private var config = loadConfig()
+    private var config : Config? = null
+    private var player :SuspendPlayer? = null
 
-    private var player = SuspendPlayer(config?.settings?.get("player"))
-
-    private fun loadConfig() = try {
-        val state = ServiceManager.getService(MyPersistentState::class.java)
-        val path = state?.configPath?.trim()?.notEmpty()
-            ?: """C:\kotlin\MakinoVoice\config.txt"""
-        Config(File(path))
-    } catch (ex : Throwable) {
-        log.e(ex,"fileList load failed.")
-        null
+    init{
+        reloadConfig()
     }
 
     fun dispatch(event : Events) {
@@ -184,15 +178,23 @@ object Dispatcher {
                 log.w("missing file for section ${event.name}")
                 return
             }
-            player.play(file)
+            player?.play(file)
         } catch (ex : Throwable) {
             log.e(ex, "dispatch failed.")
         }
     }
 
     fun reloadConfig() {
-        config = loadConfig()
-        player.close()
-        player = SuspendPlayer(config?.settings?.get("player"))
+        config = try {
+            val state = ServiceManager.getService(MyPersistentState::class.java)
+            val path = state?.configPath?.trim()?.notEmpty()
+                ?: """C:\kotlin\MakinoVoice\config.txt"""
+            Config(File(path))
+        } catch (ex : Throwable) {
+            log.e(ex,"fileList load failed.")
+            null
+        }
+        player?.close()
+        player = SuspendPlayer(config?.settings?.get(Config.SETTING_COMMAND))
     }
 }

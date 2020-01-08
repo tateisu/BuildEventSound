@@ -19,7 +19,7 @@ open class Subscribe(private val project: Project) {
                 Dispatcher.dispatch(
                     when {
                         errors > 0 -> Events.BuildError
-                    //    warnings > 0 -> Events.BuildWarning
+                        warnings > 0 -> Events.BuildWarning
                         else -> Events.BuildSuccess
                     }
                 )
