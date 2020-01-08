@@ -1,4 +1,4 @@
-# BuildEventSound
+# BuildEvent Sound
 Plugin for IntelliJ IDEA that runs command when build event happen.
 
 IntelliJ IDEA用のプラグインです。ビルド終了時にコマンドを実行する能力があります。
