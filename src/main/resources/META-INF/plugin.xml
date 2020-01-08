@@ -1,0 +1,45 @@
+<idea-plugin>
+    <id>jp.juggler.BuildEventSound</id>
+    <name>BuildEvent Sound</name>
+    <vendor email="tateisu@gmail.com" url="https://mastodon.juggler.jp/@tateisu">@tateisu@mastodon.juggler.jp</vendor>
+
+    <description><![CDATA[
+    Run commands when build event raised. the commands are customizable.
+    ]]></description>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
+    <idea-version since-build="173.0"/>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.modules.lang</depends>
+    <depends optional="true" config-file="android_config.xml">org.jetbrains.android</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+
+        <compiler.task
+                execute="BEFORE"
+                implementation="CompilerTaskBefore"
+        />
+
+        <applicationConfigurable
+                instance="PreferencesUI"
+                groupId="null"
+                displayName="BuildEvent Sound"
+                id="preference.BuildEventSound"
+        />
+
+        <applicationService
+                serviceImplementation="MyPersistentState"
+        />
+    </extensions>
+
+    <project-components>
+        <component>
+            <implementation-class>Subscribe</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin>
+

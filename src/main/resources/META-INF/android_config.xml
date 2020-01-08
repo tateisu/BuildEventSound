@@ -1,0 +1,7 @@
+<idea-plugin>
+    <project-components>
+        <component>
+            <implementation-class>SubscribeAndroid</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin>
