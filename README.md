@@ -26,7 +26,7 @@ ffmpegについてくるffplayコマンドを適当に探してインストー�
 ### 導入3
 - Android Studio のメニューのFile/Settings/Other Settings/BuildEvent Soundを開きます。
 - Config file path の項目に、先ほど編集したconfig.txtのファイルパスをフルパスで指定します。
-- Appleボタンを押すと設定が読み込まれて、ビルド完了時に音がなります。
+- Applyボタンを押すと設定が読み込まれて、ビルド完了時に音がなります。
 
 ### トラブルシューティング
 Android Studio のメニューのHelp/Show Log in Explorerを選ぶとidea.logのあるフォルダが開かれるので、適当に読んで調べてください。
