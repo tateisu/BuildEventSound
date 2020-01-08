@@ -17,7 +17,7 @@ ffmpegについてくるffplayコマンドを適当に探してインストー�
 - config.txt をエディタで適当に編集します。 設定項目についてはファイル中のコメントを確認してください。
 
 ### 導入2
-- Githubのリリースページに添付したjarファイルをダウンロードします。
+- リリースページ https://github.com/tateisu/BuildEventSound/releases に添付したjarファイルをダウンロードします。
 - Android Studio のメニューのFile/Settings/Pluginsを開きます
 - 右上の設定マークを押して「Install Plugin from Disk…」を開きます
 - ダウンロードしたjarファイルを指定します。
