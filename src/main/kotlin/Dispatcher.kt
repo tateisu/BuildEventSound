@@ -4,15 +4,16 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import java.io.*
+import java.lang.ref.WeakReference
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 private val log = LogCategory("Dispatcher")
 
-private fun String?.notEmpty():String? =
-    if(this?.isNotEmpty()==true) this else null
+private fun String?.notEmpty(): String? =
+    if (this?.isNotEmpty() == true) this else null
 
-class Config(configFile : File) {
+class Config(configFile: File) {
 
     companion object {
         private val reDriveRoot = """\A\w:\\""".toRegex()
@@ -21,13 +22,16 @@ class Config(configFile : File) {
         private val reSection = """\A\[([^\]]*)]""".toRegex()
 
         const val SECTION_SETTINGS = "settings"
-        const val SETTING_COMMAND = "command"
     }
 
     // map of section to list of file name.
     val map = ConcurrentHashMap<String, ArrayList<File>>()
 
-    val settings = ConcurrentHashMap<String, String>()
+    private val settings = ConcurrentHashMap<String, String>()
+
+    fun command() = settings["command"]
+    private fun validateFile() = settings["validateFile"]?.toBoolean() ?: true
+    fun destroyPreviousProcess() = settings["destroyPreviousProcess"]?.toBoolean() ?: true
 
     init {
         val parent = configFile.parentFile
@@ -75,8 +79,8 @@ class Config(configFile : File) {
                             } else {
                                 File(parent, line)
                             }
-                            if (!file.isFile) {
-                                log.w("$configFile $lineNum : not a file. ${file.canonicalPath}")
+                            if (validateFile() && !file.exists()) {
+                                log.w("$configFile $lineNum : file not exists. ${file.canonicalPath}")
                             } else {
                                 section.add(file)
                             }
@@ -84,55 +88,84 @@ class Config(configFile : File) {
                     }
                 }
             }
-        }catch(ex:Throwable){
-            log.e(ex,"can't read config file. $configFile")
+        } catch (ex: Throwable) {
+            log.e(ex, "can't read config file. $configFile")
         }
     }
 }
 
-class SuspendPlayer(private val player : String?) {
-    private val channel = Channel<File>(capacity = Channel.UNLIMITED )
+class PlayItem(val file: File, val event: String)
+
+class SuspendPlayer(config: Config) {
+    companion object {
+        private val reMacro = "\\\$\\{(\\w+)}".toRegex()
+        private val runtime = Runtime.getRuntime()
+    }
+
+    private val commandBase = config.command()
+    private val destroyPreviousProcess = config.destroyPreviousProcess()
+    private val channel = Channel<PlayItem>(capacity = Channel.UNLIMITED)
+    private var lastProcess: WeakReference<Process>? = null
 
     init {
-        if (player == null) {
-            log.w("missing player=... in [settings] section.")
+        if (commandBase == null) {
+            log.w("missing command=… in [settings] section.")
             try {
                 channel.close()
-            }catch(_:Throwable){
+            } catch (_: Throwable) {
             }
-        }else{
-            GlobalScope.launch(Dispatchers.IO){
+        } else {
+            GlobalScope.launch(Dispatchers.IO) {
                 while (true) {
-                    val file = try {
+                    val item = try {
                         channel.receive()
-                    } catch (ex : Throwable) {
+                    } catch (ex: Throwable) {
                         log.e(ex, "channel.receive failed.")
                         break
                     }
-                    GlobalScope.launch(Dispatchers.IO){
-                        try {
-                            val command = player.replace("\${file}", "\"${file.canonicalPath}\"")
-                            Runtime.getRuntime().exec(command)
-                        } catch (ex : IOException) {
-                            log.e(ex, "command execution failed. $file $player")
+
+                    val command = try {
+                        reMacro.replace(commandBase) {
+                            when (val word = it.groupValues[1]) {
+                                "file" -> "\"${item.file.canonicalPath}\""
+                                "event" -> item.event
+                                else -> "\${$word}"
+                            }
                         }
+                    } catch (ex: Throwable) {
+                        log.e(ex, "reMacro.replace failed. $commandBase")
+                        continue
+                    }
+
+                    if (destroyPreviousProcess) {
+                        try {
+                            lastProcess?.get()?.destroy()
+                        } catch (ex: Throwable) {
+                            log.e(ex, "Process.destroy failed.")
+                        }
+                    }
+
+                    try {
+                        lastProcess = WeakReference(runtime.exec(command))
+                    } catch (ex: IOException) {
+                        log.e(ex, "command execution failed. $command")
                     }
                 }
             }
         }
     }
 
-    fun play(file : File) {
-        if (player == null) {
-            log.w("missing player=... in [settings] section.")
+    fun play(item: PlayItem) {
+        if (commandBase == null) {
+            log.w("missing command=… in [settings] section.")
             try {
                 channel.close()
-            }catch(_:Throwable){
+            } catch (_: Throwable) {
             }
-        }else {
+        } else {
             GlobalScope.launch(Dispatchers.IO) {
                 try {
-                    channel.send(file)
+                    channel.send(item)
                 } catch (ex: Throwable) {
                     log.e(ex, "channel.send failed.")
                 }
@@ -143,7 +176,7 @@ class SuspendPlayer(private val player : String?) {
     fun close() {
         try {
             channel.close()
-        } catch (ex : Throwable) {
+        } catch (ex: Throwable) {
             log.e(ex, "channel.close failed.")
         }
     }
@@ -158,15 +191,26 @@ enum class Events {
 
 object Dispatcher {
 
-    private var config : Config? = null
-    private var player :SuspendPlayer? = null
+    private var config: Config? = null
+    private var player: SuspendPlayer? = null
 
-    init{
+    private val lastEventTime = ConcurrentHashMap<Events, Long>()
+
+    init {
         reloadConfig()
     }
 
-    fun dispatch(event : Events) {
+    fun dispatch(event: Events) {
         log.i("dispatch $event")
+
+        val lastTime = lastEventTime[event] ?: 0
+        val now = System.currentTimeMillis()
+        if (now - lastTime < 1000L) {
+            log.i("ignore rapid event $event")
+            return
+        }
+        lastEventTime[event] = now
+
         try {
             val config = this.config
             if (config == null) {
@@ -178,23 +222,26 @@ object Dispatcher {
                 log.w("missing file for section ${event.name}")
                 return
             }
-            player?.play(file)
-        } catch (ex : Throwable) {
+            player?.play(PlayItem(file, event.name))
+        } catch (ex: Throwable) {
             log.e(ex, "dispatch failed.")
         }
     }
 
     fun reloadConfig() {
-        config = try {
+        val config = try {
             val state = ServiceManager.getService(MyPersistentState::class.java)
             val path = state?.configPath?.trim()?.notEmpty()
                 ?: """C:\kotlin\MakinoVoice\config.txt"""
             Config(File(path))
-        } catch (ex : Throwable) {
-            log.e(ex,"fileList load failed.")
+        } catch (ex: Throwable) {
+            log.e(ex, "fileList load failed.")
             null
         }
-        player?.close()
-        player = SuspendPlayer(config?.settings?.get(Config.SETTING_COMMAND))
+        this.config = config
+        if (config != null) {
+            player?.close()
+            player = SuspendPlayer(config)
+        }
     }
 }

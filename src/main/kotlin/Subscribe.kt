@@ -1,7 +1,13 @@
+import com.intellij.openapi.command.CommandEvent
+import com.intellij.openapi.command.CommandListener
 import com.intellij.openapi.compiler.CompilationStatusListener
 import com.intellij.openapi.compiler.CompileContext
 import com.intellij.openapi.compiler.CompilerTopics
 import com.intellij.openapi.project.Project
+import com.intellij.task.ProjectTask
+import com.intellij.task.ProjectTaskContext
+import com.intellij.task.ProjectTaskListener
+import com.intellij.task.ProjectTaskResult
 
 open class Subscribe(private val project: Project) {
 
@@ -26,7 +32,5 @@ open class Subscribe(private val project: Project) {
             }
         })
     }
-
-
 }
 

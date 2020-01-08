@@ -2,15 +2,28 @@
 # このファイルはBOMなしで編集/保存してください。
 
 [settings]
+
 # 音声ファイルの再生に使うコマンドを指定します。
-# コマンド中の ${file} 部分が下記で指定したファイルに置き換えられます。
+# コマンド中の ${file} は下記で指定したファイルに置き換えられます。
+# コマンド中の ${event} はイベント種別に置き換えられます。
 command=C:\cygwin64\bin\ffplay.exe -nodisp -autoexit -loglevel 0 ${file}
+
+# デフォルトはtrueで、存在しないファイルは指定ごと存在しなかったことになります。
+# false にすると下記のファイルの存在確認を行わなくなります。
+validateFile=true
+
+# デフォルトはtrueで、直前に実行したコマンドをkillしてから次のコマンドを実行します。
+# falseにすると直前に実行したコマンドをkillしません。
+destroyPreviousProcess=true
 
 # イベントごとに音声ファイルを0個以上指定します。
 # ファイル名が / や \ や ドライブ文字:\ で始まる場合は絶対パス、
 # それ以外は設定ファイルがあるフォルダからの相対パスとして解釈されます。
-# イベントは BeforeCompile, BuildSuccess, BuildWarning, BuildError の4種類ありますが、
+
+# イベントは BeforeCompile, BuildSuccess, BuildWarning, BuildError の4種類あります。
 # Android Studio の場合は BeforeCompile イベントは受け取れません。
+# IntelliJ IDEA でGradleを使う場合はイベントを全く受け取れません。
+# IntelliJ IDEA でJavaやKotlinを直接扱う場合はイベントを受け取れます。
 
 [BeforeCompile]
 がんばれっがんばれっ.mp3
