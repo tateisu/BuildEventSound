@@ -42,7 +42,7 @@ class Config {
         try {
             BufferedReader(InputStreamReader(FileInputStream(configFile), "UTF-8")).use { reader ->
                 var lineNum = 0
-                var sectionName: String? = null
+                var sectionName: String? = SECTION_SETTINGS
                 var fileList: ArrayList<File>? = null
 
                 loop@ while (true) {
