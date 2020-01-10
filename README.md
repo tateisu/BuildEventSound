@@ -21,11 +21,11 @@ Android Studio 3.5 や IntelliJ IDEA の ビルド "191.8026.42" ～ "193.5662.5
 - `config.txt` をエディタで適当に編集します。 設定項目についてはファイル中のコメントを確認してください。
 
 ### 導入2
-- IDEのメニューのFile/Settings/Pluginsを開きます
+- IDEのメニューのFile/Settingsを開いてPluginsパネルを選択します。
 - 右上の設定マークを押して「Install Plugin from Disk…」を開きます
 - プラグインのjarファイルを指定します。
 - IDEを再起動します。
-- IDEのメニューのFile/Settings/Other Settings/BuildEvent Soundを開きます。
+- IDEのメニューのFile/Settingsを開いてOther Settings/BuildEvent Soundパネルを選択します。
 - Config file path の項目に、先ほど編集したconfig.txtのファイルパスをフルパスで指定します。
 - Applyボタンを押すと設定が読み込まれて、ビルド完了時に音がなります。
 
