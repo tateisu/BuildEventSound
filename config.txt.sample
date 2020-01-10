@@ -16,14 +16,14 @@ validateFile=true
 # falseにすると直前に実行したコマンドをkillしません。
 destroyPreviousProcess=true
 
-# イベントごとに音声ファイルを0個以上指定します。
-# ファイル名が / や \ や ドライブ文字:\ で始まる場合は絶対パス、
-# それ以外は設定ファイルがあるフォルダからの相対パスとして解釈されます。
-
 # イベントの種類
+# IntelliJ IDEA でGradleを使う場合はイベントを検出できません。
 # IntelliJ IDEA でJavaやKotlinを直接扱う場合は BeforeCompile, BuildSuccess, BuildWarning, BuildError, TestPassed, TestDefect イベントを受け取れます。
 # Android Studio でGradleを使う場合は BuildSuccess, BuildWarning, BuildError イベントを受け取れます。
-# IntelliJ IDEA でGradleを使う場合はイベントを検出できません。
+
+# イベントごとにセクションを作って、その下に音声ファイルを0個以上指定します。
+# ファイル名が / や \ や (ドライブ文字):\ で始まる場合は絶対パス、
+# それ以外は設定ファイルがあるフォルダからの相対パスとして解釈されます。
 
 [BeforeCompile]
 がんばれっがんばれっ.mp3
