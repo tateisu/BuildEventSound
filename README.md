@@ -2,6 +2,9 @@
 IntelliJ IDEA用のプラグインです。ビルド終了時にコマンドを実行します。
 たとえばffplayを起動して何か音声ファイルを再生するなどできます。
 
+### 動作環境
+Android Studio 3.5 や IntelliJ IDEA の ビルド "191.8026.42" ～ "193.5662.53" で動くと思います。
+
 ### 機能制限
 - IntelliJ IDEA でJavaやKotlinを直接扱う場合は BeforeCompile, BuildSuccess, BuildWarning, BuildError, TestPassed, TestDefect イベントを受け取れます。
 - Android Studio でGradleを使う場合は BuildSuccess, BuildWarning, BuildError イベントを受け取れます。
