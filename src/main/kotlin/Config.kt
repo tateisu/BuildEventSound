@@ -6,8 +6,10 @@ import java.io.InputStreamReader
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-class Config(val configFile: File) {
-
+class Config private constructor(
+    private val configFile: File,
+    private val lastModified: Long? = configFile.lastModifiedOrNull()
+) {
     companion object {
         private val log = LogCategory("Config")
         private val reDriveRoot = """\A\w:\\""".toRegex()
@@ -33,17 +35,15 @@ class Config(val configFile: File) {
 
         val latest: Config
             get() {
-                val configFile = getConfigFile()
-                val lastModified = config.lastModified
-                if (configFile != config.configFile || lastModified != config.lastModified) {
-                    log.i("reloadIfModified")
-                    config = Config(configFile)
+                val newConfigFile = getConfigFile()
+                val newLastModified = newConfigFile.lastModifiedOrNull()
+                if (newConfigFile != config.configFile || newLastModified != config.lastModified) {
+                    log.i("reload")
+                    config = Config(newConfigFile, newLastModified)
                 }
                 return config
             }
     }
-
-    val lastModified = configFile.lastModifiedOrNull()
 
     // map of sections that contains file list.
     private val map = ConcurrentHashMap<String, ArrayList<File>>()
