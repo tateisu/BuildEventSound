@@ -20,92 +20,121 @@ class Config {
             MyConfigurable.state.configPath.trim().notEmpty()
                 ?: """C:\kotlin\MakinoVoice\config.txt"""
         )
+        private fun File.lastModifiedOrNull() =
+            try{
+                lastModified().notZero()
+            }catch(ex:Throwable){
+                log.e(ex,"lastModified() failed. $this")
+                0L
+            }
     }
 
-    // map of sections that contains file list.
-    val map = ConcurrentHashMap<String, ArrayList<File>>()
+    class Data{
+        val lastModified :Long?
 
-    private val settings = ConcurrentHashMap<String, String>()
+        // map of sections that contains file list.
+        val map = ConcurrentHashMap<String, ArrayList<File>>()
 
-    val command: String
-        get() = settings["command"] ?: ""
+        // key=value pairs for settings.
+        val settings = ConcurrentHashMap<String, String>()
 
-    val destroyPreviousProcess: Boolean
-        get() = settings["destroyPreviousProcess"]?.toBoolean() ?: true
+        private val validateFile: Boolean
+            get() = settings["validateFile"]?.toBoolean() ?: true
 
-    private val validateFile: Boolean
-        get() = settings["validateFile"]?.toBoolean() ?: true
+        init{
+            val configFile = getConfigFile()
+            val parent = configFile.parentFile
 
-    init {
-        val configFile = getConfigFile()
-        val parent = configFile.parentFile
-        try {
-            BufferedReader(InputStreamReader(FileInputStream(configFile), "UTF-8")).use { reader ->
-                var lineNum = 0
-                var sectionName: String? = SECTION_SETTINGS
-                var fileList: ArrayList<File>? = null
+            lastModified =configFile.lastModifiedOrNull()
 
-                loop@ while (true) {
-                    ++lineNum
+            try {
 
-                    val line = reader.readLine()?.trim()
-                        ?: break
+                BufferedReader(InputStreamReader(FileInputStream(configFile), "UTF-8")).use { reader ->
+                    var lineNum = 0
+                    var sectionName: String? = SECTION_SETTINGS
+                    var fileList: ArrayList<File>? = null
 
-                    if (line.isEmpty() || reComment.matches(line))
-                        continue
+                    loop@ while (true) {
+                        ++lineNum
 
-                    // [section]
-                    val sv = reSection.find(line)?.groupValues?.get(1)
-                    if (sv != null) {
-                        sectionName = sv
-                        log.i("section $sectionName")
+                        val line = reader.readLine()?.trim()
+                            ?: break
 
-                        if (sectionName == SECTION_SETTINGS) {
-                            fileList = null
-                        } else {
-                            fileList = map[sectionName]
-                            if (fileList == null) {
-                                fileList = ArrayList()
-                                map[sectionName] = fileList
-                            }
-                        }
-                        continue
-                    }
+                        if (line.isEmpty() || reComment.matches(line))
+                            continue
 
-                    when {
-                        // settings セクションは key=value ペアを保持する
-                        sectionName == SECTION_SETTINGS -> {
-                            val cols = line.split("=", limit = 2).map { it.trim() }
-                            when (cols.size) {
-                                2 -> settings[cols[0]] = cols[1]
-                                1 -> settings[cols[0]] = cols[0]
-                                else -> log.w("settings: invalid line $line")
-                            }
-                        }
+                        // [section]
+                        val sv = reSection.find(line)?.groupValues?.get(1)
+                        if (sv != null) {
+                            sectionName = sv
+                            log.i("section $sectionName")
 
-                        // 他のセクションが出現していない
-                        fileList == null -> {
-                            log.w("$configFile $lineNum : section is not yet specified in previous lines.")
-                        }
-
-                        else -> {
-                            val head = line.firstOrNull()
-                            val file = if (head == '/' || head == '\\' || reDriveRoot.matches(line)) {
-                                File(line)
+                            if (sectionName == SECTION_SETTINGS) {
+                                fileList = null
                             } else {
-                                File(parent, line)
+                                fileList = map[sectionName]
+                                if (fileList == null) {
+                                    fileList = ArrayList()
+                                    map[sectionName] = fileList
+                                }
                             }
-                            if (validateFile && !file.exists()) {
-                                log.w("$configFile $lineNum : file not exists. ${file.canonicalPath}")
-                            } else {
-                                fileList.add(file)
+                            continue
+                        }
+
+                        when {
+                            // settings セクションは key=value ペアを保持する
+                            sectionName == SECTION_SETTINGS -> {
+                                val cols = line.split("=", limit = 2).map { it.trim() }
+                                when (cols.size) {
+                                    2 -> settings[cols[0]] = cols[1]
+                                    1 -> settings[cols[0]] = cols[0]
+                                    else -> log.w("settings: invalid line $line")
+                                }
+                            }
+
+                            // 他のセクションが出現していない
+                            fileList == null -> {
+                                log.w("$configFile $lineNum : section is not yet specified in previous lines.")
+                            }
+
+                            else -> {
+                                val head = line.firstOrNull()
+                                val file = if (head == '/' || head == '\\' || reDriveRoot.matches(line)) {
+                                    File(line)
+                                } else {
+                                    File(parent, line)
+                                }
+                                if (validateFile && !file.exists()) {
+                                    log.w("$configFile $lineNum : file not exists. ${file.canonicalPath}")
+                                } else {
+                                    fileList.add(file)
+                                }
                             }
                         }
                     }
                 }
+            } catch (ex: Throwable) {
+                log.e(ex, "can't read config file. $configFile")
             }
-        } catch (ex: Throwable) {
-            log.e(ex, "can't read config file. $configFile")
         }
     }
+
+    private var data = Data()
+
+    fun reloadIfModified(){
+        val lastModified = getConfigFile().lastModifiedOrNull()
+        if( lastModified != data.lastModified){
+            log.i("reloadIfModified")
+            data= Data()
+        }
+    }
+
+    val command: String
+        get()=data.settings["command"] ?: ""
+
+    val destroyPreviousProcess: Boolean
+        get()= data.settings["destroyPreviousProcess"]?.toBoolean() ?: true
+
+    fun getFileFromEvent(eventName: String)=
+        data.map[eventName]?.random()
 }

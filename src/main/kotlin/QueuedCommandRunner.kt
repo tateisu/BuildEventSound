@@ -41,11 +41,6 @@ class QueuedCommandRunner(private val config: Config) {
     }
 
     private fun start() {
-        if (config.command.isBlank()) {
-            log.w("missing command=… in [settings] section.")
-            close()
-            return
-        }
         GlobalScope.launch(Dispatchers.IO) {
             while (true) {
                 val event = try {
@@ -66,7 +61,7 @@ class QueuedCommandRunner(private val config: Config) {
 
     private fun handleEvent(event: BuildEvent) {
 
-        // 同じイベントを短時間に処理しないようにする
+        // 同じイベントを処理するのは1秒に1回まで
         val lastTime = lastEventTime[event] ?: 0
         val now = System.currentTimeMillis()
         if (now - lastTime < 1000L) {
@@ -75,14 +70,22 @@ class QueuedCommandRunner(private val config: Config) {
         }
         lastEventTime[event] = now
 
-        val file = config.map[event.name]?.random()
+        config.reloadIfModified()
+
+        val file = config.getFileFromEvent(event.name)
         if (file == null) {
             log.w("missing file for section ${event.name}")
             return
         }
 
+        val commandBase = config.command
+        if (commandBase.isBlank()) {
+            log.w("missing command=… in [settings] section.")
+            return
+        }
+
         val command = try {
-            reMacro.replace(config.command) {
+            reMacro.replace(commandBase) {
                 when (val word = it.groupValues[1]) {
                     "file" -> "\"${file.canonicalPath}\""
                     "event" -> event.name
