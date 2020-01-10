@@ -4,11 +4,14 @@
     <vendor email="tateisu@gmail.com" url="https://mastodon.juggler.jp/@tateisu">@tateisu@mastodon.juggler.jp</vendor>
 
     <description><![CDATA[
-    Run commands when build event raised. the commands are customizable.
+    Run command when build event detected. the command is customizable.
     ]]></description>
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
-    <idea-version since-build="191.8026.42"/>
+    <idea-version
+            since-build="191.8026.42"
+            until-build="194.5662.53"
+    />
 
     <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
          on how to target different products -->
@@ -21,24 +24,27 @@
 
         <compiler.task
                 execute="BEFORE"
-                implementation="CompilerTaskBefore"
+                implementation="detector.CompilerTaskBefore"
         />
 
         <applicationConfigurable
-                instance="PreferencesUI"
+                instance="settingsUi.MyConfigurable"
                 groupId="null"
                 displayName="BuildEvent Sound"
                 id="preference.BuildEventSound"
         />
 
         <applicationService
-                serviceImplementation="MyPersistentState"
+                serviceImplementation="settingsUi.MyPersistentState"
+        />
+
+        <testStatusListener
+                implementation="detector.MyTestStatusListener"
         />
     </extensions>
-
     <project-components>
         <component>
-            <implementation-class>Subscribe</implementation-class>
+            <implementation-class>detector.Subscribe</implementation-class>
         </component>
     </project-components>
 </idea-plugin>

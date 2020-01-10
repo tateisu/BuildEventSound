@@ -32,7 +32,7 @@ intellij {
 }
 
 patchPluginXml {
-    sinceBuild '191.8026.42'
-    untilBuild '194.5662.53'
-    changeNotes """Initial creation.<br><em>very very tiny implement.</em>"""
+    sinceBuild "191.8026.42"
+    untilBuild "194.5662.53"
+    changeNotes """see <a href="https://github.com/tateisu/BuildEventSound/releases">release note</a>."""
 }

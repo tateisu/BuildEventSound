@@ -1,3 +1,5 @@
+package settingsUi
+
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.State
 import com.intellij.openapi.components.Storage
@@ -10,6 +12,8 @@ import org.jetbrains.annotations.Nullable
 )
 class MyPersistentState : PersistentStateComponent<MyPersistentState> {
 
+    var configPath: String = ""
+
     @Nullable
     override fun getState(): MyPersistentState {
         return this
@@ -18,6 +22,4 @@ class MyPersistentState : PersistentStateComponent<MyPersistentState> {
     override fun loadState(state: MyPersistentState) {
         copyBean(state, this);
     }
-
-    var configPath: String = ""
 }
