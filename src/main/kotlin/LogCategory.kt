@@ -14,16 +14,14 @@ class LogCategory(private val name: String) {
         }
     }
 
-    fun w(ex: Throwable, msg: String) {
+    fun w(ex: Throwable, msg: String): Unit =
         dst.warn(ex.formatCaption(msg))
-    }
 
-    fun w(msg: String) {
+
+    fun w(msg: String): Unit =
         dst.warn(msg)
-    }
 
-    fun i(msg: String) {
+    fun i(msg: String): Unit =
         dst.info("$name : $msg")
-    }
 
 }
