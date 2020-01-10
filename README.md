@@ -2,10 +2,10 @@
 IntelliJ IDEA用のプラグインです。ビルド終了時にコマンドを実行します。
 たとえばffplayを起動して何か音声ファイルを再生するなどできます。
 
-### 免責
-- Android Studio でGradleを使う場合、ビルド開始イベントは受け取れません。
-- IntelliJ IDEA でGradleを使う場合、イベントを全く受け取れません。
-- IntelliJ IDEA でIDEAから直接JavaやKotlinを扱う場合、イベントを受け取れます。
+### 機能制限
+- IntelliJ IDEA でJavaやKotlinを直接扱う場合は BeforeCompile, BuildSuccess, BuildWarning, BuildError, TestPassed, TestDefect イベントを受け取れます。
+- Android Studio でGradleを使う場合は BuildSuccess, BuildWarning, BuildError イベントを受け取れます。
+- IntelliJ IDEA でGradleを使う場合はイベントを検出できません。
 
 ### 導入1
 ffmpegについてくるffplayコマンドを適当にインストールして実行ファイルのパスをメモしておきます。
