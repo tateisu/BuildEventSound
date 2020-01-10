@@ -6,7 +6,7 @@ import java.io.InputStreamReader
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
-class Config {
+class Config(val configFile: File) {
 
     companion object {
         private val log = LogCategory("Config")
@@ -20,121 +20,120 @@ class Config {
             MyConfigurable.state.configPath.trim().notEmpty()
                 ?: """C:\kotlin\MakinoVoice\config.txt"""
         )
+
         private fun File.lastModifiedOrNull() =
-            try{
+            try {
                 lastModified().notZero()
-            }catch(ex:Throwable){
-                log.e(ex,"lastModified() failed. $this")
+            } catch (ex: Throwable) {
+                log.e(ex, "lastModified() failed. $this")
                 0L
+            }
+
+        private var config = Config(getConfigFile())
+
+        val latest: Config
+            get() {
+                val configFile = getConfigFile()
+                val lastModified = config.lastModified
+                if (configFile != config.configFile || lastModified != config.lastModified) {
+                    log.i("reloadIfModified")
+                    config = Config(configFile)
+                }
+                return config
             }
     }
 
-    class Data{
-        val lastModified :Long?
+    val lastModified = configFile.lastModifiedOrNull()
 
-        // map of sections that contains file list.
-        val map = ConcurrentHashMap<String, ArrayList<File>>()
+    // map of sections that contains file list.
+    private val map = ConcurrentHashMap<String, ArrayList<File>>()
 
-        // key=value pairs for settings.
-        val settings = ConcurrentHashMap<String, String>()
+    // key=value pairs for settings.
+    private val settings = ConcurrentHashMap<String, String>()
 
-        private val validateFile: Boolean
-            get() = settings["validateFile"]?.toBoolean() ?: true
+    private val validateFile: Boolean
+        get() = settings["validateFile"]?.toBoolean() ?: true
 
-        init{
-            val configFile = getConfigFile()
-            val parent = configFile.parentFile
+    val command: String
+        get() = settings["command"] ?: ""
 
-            lastModified =configFile.lastModifiedOrNull()
+    val destroyPreviousProcess: Boolean
+        get() = settings["destroyPreviousProcess"]?.toBoolean() ?: true
 
-            try {
+    fun getFileFromEvent(eventName: String) =
+        map[eventName]?.random()
 
-                BufferedReader(InputStreamReader(FileInputStream(configFile), "UTF-8")).use { reader ->
-                    var lineNum = 0
-                    var sectionName: String? = SECTION_SETTINGS
-                    var fileList: ArrayList<File>? = null
+    init {
+        val parent = configFile.parentFile
 
-                    loop@ while (true) {
-                        ++lineNum
+        try {
 
-                        val line = reader.readLine()?.trim()
-                            ?: break
+            BufferedReader(InputStreamReader(FileInputStream(configFile), "UTF-8")).use { reader ->
+                var lineNum = 0
+                var sectionName: String? = SECTION_SETTINGS
+                var fileList: ArrayList<File>? = null
 
-                        if (line.isEmpty() || reComment.matches(line))
-                            continue
+                loop@ while (true) {
+                    ++lineNum
 
-                        // [section]
-                        val sv = reSection.find(line)?.groupValues?.get(1)
-                        if (sv != null) {
-                            sectionName = sv
-                            log.i("section $sectionName")
+                    val line = reader.readLine()?.trim()
+                        ?: break
 
-                            if (sectionName == SECTION_SETTINGS) {
-                                fileList = null
-                            } else {
-                                fileList = map[sectionName]
-                                if (fileList == null) {
-                                    fileList = ArrayList()
-                                    map[sectionName] = fileList
-                                }
+                    if (line.isEmpty() || reComment.matches(line))
+                        continue
+
+                    // [section]
+                    val sv = reSection.find(line)?.groupValues?.get(1)
+                    if (sv != null) {
+                        sectionName = sv
+                        log.i("section $sectionName")
+
+                        if (sectionName == SECTION_SETTINGS) {
+                            fileList = null
+                        } else {
+                            fileList = map[sectionName]
+                            if (fileList == null) {
+                                fileList = ArrayList()
+                                map[sectionName] = fileList
                             }
-                            continue
+                        }
+                        continue
+                    }
+
+                    when {
+                        // settings セクションは key=value ペアを保持する
+                        sectionName == SECTION_SETTINGS -> {
+                            val cols = line.split("=", limit = 2).map { it.trim() }
+                            when (cols.size) {
+                                2 -> settings[cols[0]] = cols[1]
+                                1 -> settings[cols[0]] = cols[0]
+                                else -> log.w("settings: invalid line $line")
+                            }
                         }
 
-                        when {
-                            // settings セクションは key=value ペアを保持する
-                            sectionName == SECTION_SETTINGS -> {
-                                val cols = line.split("=", limit = 2).map { it.trim() }
-                                when (cols.size) {
-                                    2 -> settings[cols[0]] = cols[1]
-                                    1 -> settings[cols[0]] = cols[0]
-                                    else -> log.w("settings: invalid line $line")
-                                }
-                            }
+                        // 他のセクションが出現していない
+                        fileList == null -> {
+                            log.w("$configFile $lineNum : section is not yet specified in previous lines.")
+                        }
 
-                            // 他のセクションが出現していない
-                            fileList == null -> {
-                                log.w("$configFile $lineNum : section is not yet specified in previous lines.")
+                        else -> {
+                            val head = line.firstOrNull()
+                            val file = if (head == '/' || head == '\\' || reDriveRoot.matches(line)) {
+                                File(line)
+                            } else {
+                                File(parent, line)
                             }
-
-                            else -> {
-                                val head = line.firstOrNull()
-                                val file = if (head == '/' || head == '\\' || reDriveRoot.matches(line)) {
-                                    File(line)
-                                } else {
-                                    File(parent, line)
-                                }
-                                if (validateFile && !file.exists()) {
-                                    log.w("$configFile $lineNum : file not exists. ${file.canonicalPath}")
-                                } else {
-                                    fileList.add(file)
-                                }
+                            if (validateFile && !file.exists()) {
+                                log.w("$configFile $lineNum : file not exists. ${file.canonicalPath}")
+                            } else {
+                                fileList.add(file)
                             }
                         }
                     }
                 }
-            } catch (ex: Throwable) {
-                log.e(ex, "can't read config file. $configFile")
             }
+        } catch (ex: Throwable) {
+            log.e(ex, "can't read config file. $configFile")
         }
     }
-
-    private var data = Data()
-
-    fun reloadIfModified(){
-        val lastModified = getConfigFile().lastModifiedOrNull()
-        if( lastModified != data.lastModified){
-            log.i("reloadIfModified")
-            data= Data()
-        }
-    }
-
-    val command: String
-        get()=data.settings["command"] ?: ""
-
-    val destroyPreviousProcess: Boolean
-        get()= data.settings["destroyPreviousProcess"]?.toBoolean() ?: true
-
-    fun getFileFromEvent(eventName: String)=
-        data.map[eventName]?.random()
 }

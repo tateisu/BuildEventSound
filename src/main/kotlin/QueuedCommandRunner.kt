@@ -6,14 +6,13 @@ import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 
-class QueuedCommandRunner(private val config: Config) {
-    companion object {
-        private val log = LogCategory("QueuedCommandRunner")
+object QueuedCommandRunner {
 
-        private val reMacro = """\$\{(\w+)}""".toRegex()
+    private val log = LogCategory("QueuedCommandRunner")
 
-        private val runtime = Runtime.getRuntime()
-    }
+    private val reMacro = """\$\{(\w+)}""".toRegex()
+
+    private val runtime = Runtime.getRuntime()
 
     private val channel = Channel<BuildEvent>(capacity = Channel.UNLIMITED)
 
@@ -21,26 +20,6 @@ class QueuedCommandRunner(private val config: Config) {
     private val lastEventTime = ConcurrentHashMap<BuildEvent, Long>()
 
     init {
-        start()
-    }
-
-    fun enqueue(event: BuildEvent) = GlobalScope.launch(Dispatchers.IO) {
-        try {
-            channel.send(event)
-        } catch (ex: Throwable) {
-            log.w(ex, "channel.send failed.")
-        }
-    }
-
-    fun close() {
-        try {
-            channel.close()
-        } catch (ex: Throwable) {
-            log.w(ex, "channel.close failed.")
-        }
-    }
-
-    private fun start() {
         GlobalScope.launch(Dispatchers.IO) {
             while (true) {
                 val event = try {
@@ -59,6 +38,14 @@ class QueuedCommandRunner(private val config: Config) {
         }
     }
 
+    fun post(event: BuildEvent) = GlobalScope.launch(Dispatchers.IO) {
+        try {
+            channel.send(event)
+        } catch (ex: Throwable) {
+            log.w(ex, "channel.send failed.")
+        }
+    }
+
     private fun handleEvent(event: BuildEvent) {
 
         // 同じイベントを処理するのは1秒に1回まで
@@ -70,7 +57,7 @@ class QueuedCommandRunner(private val config: Config) {
         }
         lastEventTime[event] = now
 
-        config.reloadIfModified()
+        val config = Config.latest
 
         val file = config.getFileFromEvent(event.name)
         if (file == null) {
@@ -93,7 +80,7 @@ class QueuedCommandRunner(private val config: Config) {
                 }
             }
         } catch (ex: Throwable) {
-            log.e(ex, "reMacro.replace failed. ${config.command}")
+            log.e(ex, "reMacro.replace failed. $commandBase")
             return
         }
 

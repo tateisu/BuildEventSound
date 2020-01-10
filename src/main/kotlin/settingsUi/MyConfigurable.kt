@@ -45,7 +45,6 @@ class MyConfigurable : Configurable {
     override fun apply() {
         log.w("apply")
         state.configPath = (tfConfigPath?.text ?: "")
-        BuildEvent.reload()
     }
 
     override fun isModified(): Boolean {
