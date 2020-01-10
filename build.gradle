@@ -6,7 +6,6 @@ plugins {
 
 group 'jp.juggler'
 version '0.2'
-sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -24,15 +23,14 @@ compileTestKotlin {
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
-//  Plugin "BuildEvent Sound" is incompatible (until build 191.SNAPSHOT < IC-193.5662.53)
 intellij {
     version '191.8026.42'
     type 'IC'
-    plugins 'android'
+    plugins['android']
 }
 
 patchPluginXml {
-    sinceBuild "191.8026.42"
-    untilBuild "194.5662.53"
+    sinceBuild "191.8026.42" // Android Studio 5 相当
+    untilBuild "194.5662.53" // 適当な大きい数字
     changeNotes """see <a href="https://github.com/tateisu/BuildEventSound/releases">release note</a>."""
 }
