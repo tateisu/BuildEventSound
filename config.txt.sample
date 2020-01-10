@@ -20,10 +20,10 @@ destroyPreviousProcess=true
 # ファイル名が / や \ や ドライブ文字:\ で始まる場合は絶対パス、
 # それ以外は設定ファイルがあるフォルダからの相対パスとして解釈されます。
 
-# イベントは BeforeCompile, BuildSuccess, BuildWarning, BuildError の4種類あります。
-# Android Studio の場合は BeforeCompile イベントは受け取れません。
-# IntelliJ IDEA でGradleを使う場合はイベントを全く受け取れません。
-# IntelliJ IDEA でJavaやKotlinを直接扱う場合はイベントを受け取れます。
+# イベントの種類
+# IntelliJ IDEA でJavaやKotlinを直接扱う場合は BeforeCompile, BuildSuccess, BuildWarning, BuildError, TestPassed, TestDefect イベントを受け取れます。
+# Android Studio でGradleを使う場合は BuildSuccess, BuildWarning, BuildError イベントを受け取れます。
+# IntelliJ IDEA でGradleを使う場合はイベントを検出できません。
 
 [BeforeCompile]
 がんばれっがんばれっ.mp3
@@ -49,6 +49,13 @@ destroyPreviousProcess=true
 いっぱいがんばっててえらい！1.mp3
 たすけて！もなふわすい～とる～む！！.mp3
 コンパイル？？.mp3
+
+[TestPassed]
+再生したよ～！.mp3
+
+[TestDefect]
+ちゃんとテストした？.mp3
+ちゃ～んとテストした？.mp3
 
 # このセクション名には該当するイベントがなく、使われません
 [other]
