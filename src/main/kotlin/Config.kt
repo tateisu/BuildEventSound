@@ -14,7 +14,7 @@ class Config {
         private val reComment = """\A#.+""".toRegex()
         private val reSection = """\A\[([^]]*)]""".toRegex()
 
-        const val SECTION_SETTINGS = "settings"
+        private const val SECTION_SETTINGS = "settings"
 
         private fun getConfigFile() = File(
             MyConfigurable.state.configPath.trim().notEmpty()

@@ -15,11 +15,10 @@ class LogCategory(private val name: String) {
     }
 
     fun w(ex: Throwable, msg: String): Unit =
-        dst.warn(ex.formatCaption(msg))
-
+        dst.warn("$name : ${ex.formatCaption(msg)}")
 
     fun w(msg: String): Unit =
-        dst.warn(msg)
+        dst.warn("$name : $msg")
 
     fun i(msg: String): Unit =
         dst.info("$name : $msg")
