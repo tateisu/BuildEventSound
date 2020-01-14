@@ -1,4 +1,4 @@
-import settingsUi.MyConfigurable
+import settingsUi.MyPersistentState
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -15,11 +15,12 @@ class Config private constructor(
         private val reDriveRoot = """\A\w:\\""".toRegex()
         private val reComment = """\A#.+""".toRegex()
         private val reSection = """\A\[([^]]*)]""".toRegex()
+        private val reMacro = """\$\{([^}]*)}""".toRegex()
 
         private const val SECTION_SETTINGS = "settings"
 
         private fun getConfigFile() = File(
-            MyConfigurable.state.configPath.trim().notEmpty()
+            MyPersistentState.service.configPath.trim().notEmpty()
                 ?: """C:\kotlin\MakinoVoice\config.txt"""
         )
 
@@ -48,20 +49,30 @@ class Config private constructor(
     // map of sections that contains file list.
     private val map = ConcurrentHashMap<String, ArrayList<File>>()
 
+    fun getFileFromEvent(eventName: String) =
+        map[eventName]?.random()
+
     // key=value pairs for settings.
     private val settings = ConcurrentHashMap<String, String>()
 
     private val validateFile: Boolean
         get() = settings["validateFile"]?.toBoolean() ?: true
 
-    val command: String
-        get() = settings["command"] ?: ""
-
     val destroyPreviousProcess: Boolean
         get() = settings["destroyPreviousProcess"]?.toBoolean() ?: true
 
-    fun getFileFromEvent(eventName: String) =
-        map[eventName]?.random()
+
+    fun command(map: Map<String, String>): String =
+        try {
+            reMacro.replace(settings["command"] ?: "") {
+                val keyword = it.groupValues[1]
+                map[keyword] ?: "\${$keyword}"
+            }
+        } catch (ex: Throwable) {
+            log.e(ex, "reMacro.replace failed. ${settings["command"]}")
+            ""
+        }
+
 
     init {
         val parent = configFile.parentFile
@@ -73,7 +84,7 @@ class Config private constructor(
                 var sectionName: String? = SECTION_SETTINGS
                 var fileList: ArrayList<File>? = null
 
-                loop@ while (true) {
+                while (true) {
                     ++lineNum
 
                     val line = reader.readLine()?.trim()

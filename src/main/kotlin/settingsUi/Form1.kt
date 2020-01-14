@@ -18,7 +18,7 @@ class Form1 {
             column: Int,
             rowSpan: Int = 1,
             colSpan: Int = 1,
-            anchor: Int,
+            anchor: Int = GridConstraints.ANCHOR_WEST,
             fill: Int,
             HSizePolicy: Int,
             VSizePolicy: Int,
@@ -44,7 +44,7 @@ class Form1 {
         )
     }
 
-    val textFieldConfigPath = JTextField()
+    val tfConfigPath = JTextField()
 
     val rootPanel: JPanel = JPanel().apply {
 
@@ -64,12 +64,11 @@ class Form1 {
         add(
             JLabel().apply {
                 text = "Config file path"
-                labelFor = textFieldConfigPath
+                labelFor = tfConfigPath
             },
             gridConstraints(
                 row = 0,
                 column = 0,
-                anchor = GridConstraints.ANCHOR_WEST,
                 fill = GridConstraints.FILL_NONE,
                 HSizePolicy = GridConstraints.SIZEPOLICY_FIXED,
                 VSizePolicy = GridConstraints.SIZEPOLICY_FIXED
@@ -81,7 +80,6 @@ class Form1 {
             gridConstraints(
                 row = 1,
                 column = 0,
-                anchor = GridConstraints.ANCHOR_WEST,
                 fill = GridConstraints.FILL_VERTICAL,
                 HSizePolicy = GridConstraints.SIZEPOLICY_CAN_SHRINK,
                 VSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_WANT_GROW
@@ -89,11 +87,10 @@ class Form1 {
         )
 
         add(
-            textFieldConfigPath,
+            tfConfigPath,
             gridConstraints(
                 row = 0,
                 column = 1,
-                anchor = GridConstraints.ANCHOR_WEST,
                 fill = GridConstraints.FILL_HORIZONTAL,
                 HSizePolicy = GridConstraints.SIZEPOLICY_CAN_GROW or GridConstraints.SIZEPOLICY_WANT_GROW,
                 VSizePolicy = GridConstraints.SIZEPOLICY_FIXED

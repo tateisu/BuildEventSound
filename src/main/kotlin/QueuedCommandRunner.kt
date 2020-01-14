@@ -2,7 +2,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
-import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
 
@@ -10,14 +9,13 @@ object QueuedCommandRunner {
 
     private val log = LogCategory("QueuedCommandRunner")
 
-    private val reMacro = """\$\{(\w+)}""".toRegex()
-
     private val runtime = Runtime.getRuntime()
 
     private val channel = Channel<BuildEvent>(capacity = Channel.UNLIMITED)
 
-    private var lastProcess: WeakReference<Process>? = null
     private val lastEventTime = ConcurrentHashMap<BuildEvent, Long>()
+
+    private var lastProcess: WeakReference<Process>? = null
 
     init {
         GlobalScope.launch(Dispatchers.IO) {
@@ -61,26 +59,19 @@ object QueuedCommandRunner {
 
         val file = config.getFileFromEvent(event.name)
         if (file == null) {
-            log.w("missing file for section ${event.name}")
+            log.w("missing file in section ${event.name}")
             return
         }
 
-        val commandBase = config.command
-        if (commandBase.isBlank()) {
-            log.w("missing command=… in [settings] section.")
-            return
-        }
+        val command = config.command(
+            mapOf(
+                "file" to "\"${file.canonicalPath}\"",
+                "event" to event.name
+            )
+        )
 
-        val command = try {
-            reMacro.replace(commandBase) {
-                when (val word = it.groupValues[1]) {
-                    "file" -> "\"${file.canonicalPath}\""
-                    "event" -> event.name
-                    else -> "\${$word}"
-                }
-            }
-        } catch (ex: Throwable) {
-            log.e(ex, "reMacro.replace failed. $commandBase")
+        if (command.isBlank()) {
+            log.w("missing command setting.")
             return
         }
 
@@ -94,7 +85,7 @@ object QueuedCommandRunner {
 
         try {
             lastProcess = WeakReference(runtime.exec(command))
-        } catch (ex: IOException) {
+        } catch (ex: Throwable) {
             log.e(ex, "command execution failed. $command")
         }
     }
