@@ -1,5 +1,6 @@
 package settingsUi
 
+import LogCategory
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.components.State
@@ -14,8 +15,15 @@ import org.jetbrains.annotations.Nullable
 class MyPersistentState : PersistentStateComponent<MyPersistentState> {
 
     companion object{
-        val service: MyPersistentState
-            get() = ServiceManager.getService(MyPersistentState::class.java)!!
+        private val log = LogCategory("MyPersistentState")
+
+        var service: MyPersistentState = try {
+            ServiceManager.getService(MyPersistentState::class.java)!!
+        }catch(ex:Throwable){
+            log.w(ex,"ServiceManager.getService failed.")
+            // ユニットテスト時に発生する。ダミーのオブジェクトを用意する
+            MyPersistentState()
+        }
     }
 
     var configPath: String = ""
@@ -26,6 +34,6 @@ class MyPersistentState : PersistentStateComponent<MyPersistentState> {
     }
 
     override fun loadState(state: MyPersistentState) {
-        copyBean(state, this);
+        copyBean(state, this)
     }
 }

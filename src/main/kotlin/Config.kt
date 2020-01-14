@@ -20,7 +20,7 @@ class Config private constructor(
         private const val SECTION_SETTINGS = "settings"
 
         private fun getConfigFile() = File(
-            MyPersistentState.service.configPath.trim().notEmpty()
+                MyPersistentState.service.configPath.trim().notEmpty()
                 ?: """C:\kotlin\MakinoVoice\config.txt"""
         )
 

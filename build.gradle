@@ -26,6 +26,8 @@ compileTestKotlin {
 intellij {
     version '191.8026.42'
     type 'IC'
+
+    //noinspection GroovyAssignabilityCheck
     plugins 'android'
 }
 

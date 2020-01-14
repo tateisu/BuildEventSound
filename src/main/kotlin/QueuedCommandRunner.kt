@@ -4,6 +4,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.TimeUnit
 
 object QueuedCommandRunner {
 
@@ -44,7 +45,7 @@ object QueuedCommandRunner {
         }
     }
 
-    private fun handleEvent(event: BuildEvent) {
+    fun handleEvent(event: BuildEvent,blockingTimeout:Long=0L) {
 
         // 同じイベントを処理するのは1秒に1回まで
         val lastTime = lastEventTime[event] ?: 0
@@ -84,7 +85,12 @@ object QueuedCommandRunner {
         }
 
         try {
-            lastProcess = WeakReference(runtime.exec(command))
+            val process = runtime.exec(command)
+            lastProcess = WeakReference(process)
+            if(blockingTimeout > 0L){
+                val exited = process.waitFor(blockingTimeout, TimeUnit.MILLISECONDS)
+                if(!exited) log.w("process is not exited.")
+            }
         } catch (ex: Throwable) {
             log.e(ex, "command execution failed. $command")
         }

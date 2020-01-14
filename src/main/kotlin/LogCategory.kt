@@ -3,7 +3,7 @@ import com.intellij.openapi.diagnostic.Logger
 
 class LogCategory(private val name: String) {
     companion object {
-        val dst = Logger.getInstance("jp.juggler.BuildEventSound")
+        var dst = Logger.getInstance("jp.juggler.BuildEventSound")
     }
 
     fun e(exArg: Throwable, msg: String) {
