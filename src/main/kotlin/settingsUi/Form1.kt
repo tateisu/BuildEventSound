@@ -9,40 +9,37 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 
+private fun gridConstraints(
+    row: Int,
+    column: Int,
+    rowSpan: Int = 1,
+    colSpan: Int = 1,
+    anchor: Int = GridConstraints.ANCHOR_WEST,
+    fill: Int,
+    HSizePolicy: Int,
+    VSizePolicy: Int,
+    minimumSize: Dimension? = null,
+    preferredSize: Dimension? = null,
+    maximumSize: Dimension? = null,
+    indent: Int = 0,
+    useParentLayout: Boolean = false
+) = GridConstraints(
+    row,
+    column,
+    rowSpan,
+    colSpan,
+    anchor,
+    fill,
+    HSizePolicy,
+    VSizePolicy,
+    minimumSize,
+    preferredSize,
+    maximumSize,
+    indent,
+    useParentLayout
+)
+
 class Form1 {
-
-    companion object {
-
-        private fun gridConstraints(
-            row: Int,
-            column: Int,
-            rowSpan: Int = 1,
-            colSpan: Int = 1,
-            anchor: Int = GridConstraints.ANCHOR_WEST,
-            fill: Int,
-            HSizePolicy: Int,
-            VSizePolicy: Int,
-            minimumSize: Dimension? = null,
-            preferredSize: Dimension? = null,
-            maximumSize: Dimension? = null,
-            indent: Int = 0,
-            useParentLayout: Boolean = false
-        ) = GridConstraints(
-            row,
-            column,
-            rowSpan,
-            colSpan,
-            anchor,
-            fill,
-            HSizePolicy,
-            VSizePolicy,
-            minimumSize,
-            preferredSize,
-            maximumSize,
-            indent,
-            useParentLayout
-        )
-    }
 
     val tfConfigPath = JTextField()
 
