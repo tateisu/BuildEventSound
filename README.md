@@ -16,8 +16,8 @@ Android Studio 3.5 や IntelliJ IDEA の ビルド "191.8026.42" ～ "193.5662.5
 - このプラグインのリリースページ https://github.com/tateisu/BuildEventSound/releases のAssetsからプラグインのjarファイルと`comfig.txt.sample`ファイルをダウンロードしておきます。
 
 ### 音声ファイルと設定ファイルの用意
-- 適当なフォルダに音声ファイルをいくつか用意します。
-- `config.txt.sample`を同じフォルダに置いて、ファイル名を`config.txt`に名前を変更します。
+- 適当なフォルダに音声ファイルをいくつか用意します。推奨データは 巻乃もなかさんが https://www.pixiv.net/fanbox/creator/39333511/post/768804 で配布してるボイス集です。
+- 同じフォルダに、導入1でダウンロードした `config.txt.sample`を置いてファイル名を`config.txt`に名前を変更します。
 - `config.txt` をエディタで適当に編集します。 設定項目についてはファイル中のコメントを確認してください。
 - 注意： このファイルは外部の人間が変更できないよう所有権やアクセス権を適切に設定する必要があります。このファイルに書かれたコマンドをIDEから実行するため、改ざんされないようにセキュリティに注意してください。
 
@@ -34,4 +34,5 @@ Android Studio 3.5 や IntelliJ IDEA の ビルド "191.8026.42" ～ "193.5662.5
 IDEのメニューのHelp/Show Log in Explorerを選ぶとidea.logのあるフォルダが開かれるので、適当に読んで調べてください。
 
 ### 最後に
+
 [巻乃もなかはいいぞ](https://twitter.com/monaka_0_0_7)
